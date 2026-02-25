@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import API from "../api";
 
 function Tailor() {
   const [resumes, setResumes] = useState([]);
@@ -7,8 +8,9 @@ function Tailor() {
   const [result, setResult] = useState("");
 
   useEffect(() => {
-    const saved = localStorage.getItem("resumes");
-    if (saved) setResumes(JSON.parse(saved));
+    API.get("/api/resumes")
+      .then((res) => setResumes(res.data))
+      .catch(() => {});
   }, []);
 
   const handleGenerate = () => {

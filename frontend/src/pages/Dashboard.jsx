@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
+import API from "../api";
 
 function Dashboard() {
   const [applications, setApplications] = useState([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem("applications");
-    if (saved) setApplications(JSON.parse(saved));
+    API.get("/api/applications")
+      .then((res) => setApplications(res.data))
+      .catch(() => {});
   }, []);
 
   // ===== Metrics =====

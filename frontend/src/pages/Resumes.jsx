@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Modal from "../components/Modal";
+import API from "../api";
 
 function Resumes() {
   const [open, setOpen] = useState(false);
@@ -7,35 +8,32 @@ function Resumes() {
   const [text, setText] = useState("");
   const [resumes, setResumes] = useState([]);
 
-  // load from storage
+  // load from API
   useEffect(() => {
-    const saved = localStorage.getItem("resumes");
-    if (saved) setResumes(JSON.parse(saved));
+    API.get("/api/resumes")
+      .then((res) => setResumes(res.data))
+      .catch(() => {});
   }, []);
-
-  // save to storage
-  useEffect(() => {
-    localStorage.setItem("resumes", JSON.stringify(resumes));
-  }, [resumes]);
 
   const handleSave = () => {
     if (!name || !text) return;
 
-    const newResume = {
-      id: Date.now(),
-      name,
-      text,
-    };
-
-    setResumes([...resumes, newResume]);
-
-    setName("");
-    setText("");
-    setOpen(false);
+    API.post("/api/resumes", { name, text })
+      .then((res) => {
+        setResumes([...resumes, res.data]);
+        setName("");
+        setText("");
+        setOpen(false);
+      })
+      .catch(() => {});
   };
 
   const handleDelete = (id) => {
-    setResumes(resumes.filter((r) => r.id !== id));
+    API.delete(`/api/resumes/${id}`)
+      .then(() => {
+        setResumes(resumes.filter((r) => r.id !== id));
+      })
+      .catch(() => {});
   };
 
   return (

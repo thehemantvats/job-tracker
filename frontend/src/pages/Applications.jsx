@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Modal from "../components/Modal";
+import API from "../api";
 
 function Applications() {
   const [open, setOpen] = useState(false);
@@ -13,46 +14,34 @@ function Applications() {
   const [applications, setApplications] = useState([]);
 
   // resumes list
-const [resumes, setResumes] = useState([]);
-const [resumeId, setResumeId] = useState("");
+  const [resumes, setResumes] = useState([]);
+  const [resumeId, setResumeId] = useState("");
 
   useEffect(() => {
-  const saved = localStorage.getItem("applications");
-  if (saved) {
-    setApplications(JSON.parse(saved));
-  }
-}, []);
+    API.get("/api/applications")
+      .then((res) => setApplications(res.data))
+      .catch(() => {});
+  }, []);
 
-useEffect(() => {
-  localStorage.setItem("applications", JSON.stringify(applications));
-}, [applications]);
-
-useEffect(() => {
-  const savedResumes = localStorage.getItem("resumes");
-  if (savedResumes) {
-    setResumes(JSON.parse(savedResumes));
-  }
-}, []);
+  useEffect(() => {
+    API.get("/api/resumes")
+      .then((res) => setResumes(res.data))
+      .catch(() => {});
+  }, []);
 
   const handleSave = () => {
     if (!company || !role) return;
 
-    const newApp = {
-      id: Date.now(),
-      company,
-      role,
-      status,
-      resumeId,
-    };
-
-    setApplications([...applications, newApp]);
-
-    // reset
-    setCompany("");
-    setRole("");
-    setStatus("Applied");
-    setOpen(false);
-    setResumeId("");
+    API.post("/api/applications", { company, role, status, resumeId })
+      .then((res) => {
+        setApplications([...applications, res.data]);
+        setCompany("");
+        setRole("");
+        setStatus("Applied");
+        setResumeId("");
+        setOpen(false);
+      })
+      .catch(() => {});
   };
 
   const getStatusColor = (status) => {
@@ -75,15 +64,23 @@ useEffect(() => {
 };
 
 const handleDelete = (id) => {
-  setApplications(applications.filter((app) => app.id !== id));
+  API.delete(`/api/applications/${id}`)
+    .then(() => {
+      setApplications(applications.filter((app) => app.id !== id));
+    })
+    .catch(() => {});
 };
 
 const handleStatusChange = (id, newStatus) => {
-  setApplications(
-    applications.map((app) =>
-      app.id === id ? { ...app, status: newStatus } : app
-    )
-  );
+  API.put(`/api/applications/${id}`, { status: newStatus })
+    .then(() => {
+      setApplications(
+        applications.map((app) =>
+          app.id === id ? { ...app, status: newStatus } : app
+        )
+      );
+    })
+    .catch(() => {});
 };
 
   return (
