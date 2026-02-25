@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import API from "../api";
 
 const stages = ["Applied", "OA", "Interview", "HR", "Offer", "Rejected"];
 
@@ -6,8 +7,9 @@ function Kanban() {
   const [applications, setApplications] = useState([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem("applications");
-    if (saved) setApplications(JSON.parse(saved));
+    API.get("/api/applications")
+      .then((res) => setApplications(res.data))
+      .catch(() => {});
   }, []);
 
   return (
